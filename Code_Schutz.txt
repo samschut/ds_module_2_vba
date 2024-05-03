@@ -1,0 +1,105 @@
+Sub stock():
+    
+    
+    Dim ws As Worksheet
+    Dim row As LongLong ' row number
+    Dim ticker As String ' ticker name to go in column J
+    Dim cell_val As LongLong ' contents of column G
+    Dim volume As LongLong ' total stock volume going to column m
+    Dim lead As LongLong ' leaderboard row
+           
+    Dim qc As Double ' quarterly change to go to column k
+    Dim begin As Double ' contents of column C
+    Dim done As Double ' contents of column F
+    Dim pc As Double ' percent change to go to column l
+    Dim change As Double 'the change in open and close price
+    
+    
+    ' expert helped give last row
+    Dim lastrow As LongLong
+    lastrow = ActiveSheet.ws.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).row
+    
+    volume = 0
+    lead = 2
+    
+    ' Leaderboard columns
+        Range("J1").Value = "Ticker"
+        Range("K1").Value = "Quarterly Change"
+        Range("L1").Value = "Percent Change"
+        Range("M1").Value = "Volume"
+        
+    ' assign the open value for first ticker
+              
+        begin = 2
+         
+             
+    For row = 2 To lastrow:
+        cell_val = ws.Cells(row, 7).Value
+        ticker = ws.Cells(row, 1).Value
+        
+          'find first non zero
+        If ws.Cells(begin, 3) = 0 Then
+        For find_value = begin To row
+        If ws.Cells(find_value, 3).Value <> 0 Then
+            begin = find_value
+            Exit For
+        End If
+        Next find_value
+        End If
+        
+        ' check if ticker is different
+        ' if same then we can add to total
+        ' if different, then we need to add to last row and add to total
+        ' reset the volume to 0
+        ' loop rows 2 to 93001
+        
+        If (ws.Cells(row + 1, 1).Value <> ticker) Then
+            
+            ' have a new ticker
+            volume = volume + cell_val
+                    
+        ' get closing price of ticker
+            Dim begin_value As Double
+            begin_value = ws.Cells(2, 3).Value
+            
+            
+            done = ws.Cells(row, 6).Value
+            change = done - begin_value
+            
+            
+            If (begin <> 0) Then
+                pc = change / begin
+            Else
+                pc = 0
+            End If
+            
+            ws.Cells(lead, 10).Value = ticker
+            ws.Cells(lead, 11).Value = change
+            ws.Cells(lead, 12).Value = pc
+            ws.Cells(lead, 13).Value = volume
+                        
+           ' format with colors, 4green, 3red, 2white
+            If (change > 0) Then
+                ws.Cells(lead, 11).Interior.ColorIndex = 4
+            ElseIf (change < 0) Then
+                ws.Cells(lead, 11).Interior.ColorIndex = 3
+            Else
+                ws.Cells(lead, 11).Interior.ColorIndex = 2
+            End If
+            
+            ' reset volume to 0
+            volume = 0
+            lead = lead + 1
+            begin = ws.Cells(lead + 1, 3).Value ' looking at next ticker open
+            
+        Else
+            ' we just add to total
+            volume = volume + cell_val
+        End If
+    Next row
+      ' style and make look better
+      Columns("J:M").AutoFit
+    For Each ws In ThisWorkbook.Worksheets
+    Next ws
+
+End Sub
